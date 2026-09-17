@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: CAB System API - 01_Authentication
+  version: 1.0.0
+servers:
+- url: https://api.example.com/v1
+  description: Placeholder server
+paths:
+  /auth/register:
+    post:
+      tags:
+      - Authentication
+      summary: Đăng ký khách hàng
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCustomerRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /auth/login:
+    post:
+      tags:
+      - Authentication
+      summary: Đăng nhập
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TripId:
+      name: trip_id
+      in: path
+      required: true
+      schema:
+        type: string
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  schemas:
+    RegisterCustomerRequest:
+      type: object
+      required:
+      - full_name
+      - phone
+      - email
+      - password
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginRequest:
+      type: object
+      required:
+      - phone
+      - password
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
+    RegisterDriverRequest:
+      type: object
+      required:
+      - full_name
+      - phone
+      - email
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+    CreateTripRequest:
+      type: object
+      required:
+      - pickup_location
+      - dropoff_location
+      - vehicle_type
+      properties:
+        pickup_location:
+          type: string
+        dropoff_location:
+          type: string
+        vehicle_type:
+          type: string
+          example: CAR_4
+    TripStatusRequest:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - DRIVER_ARRIVING
+          - DRIVER_ARRIVED
+          - PASSENGER_PICKED_UP
+          - DRIVING
+          - COMPLETED
+    RatingRequest:
+      type: object
+      required:
+      - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+    DriverProfileRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+    VehicleRequest:
+      type: object
+      required:
+      - plate_number
+      - vehicle_type
+      properties:
+        plate_number:
+          type: string
+        vehicle_type:
+          type: string
+    DriverStatusRequest:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - AVAILABLE
+          - BUSY
+          - OFFLINE
+    LocationRequest:
+      type: object
+      required:
+      - latitude
+      - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    OfferResponseRequest:
+      type: object
+      required:
+      - response
+      properties:
+        response:
+          type: string
+          enum:
+          - ACCEPT
+          - REJECT
+    PaymentMethodRequest:
+      type: object
+      required:
+      - method
+      properties:
+        method:
+          type: string
+          enum:
+          - CASH
+          - ELECTRONIC
+    CreatePaymentRequest:
+      type: object
+      required:
+      - trip_id
+      - method
+      properties:
+        trip_id:
+          type: string
+        method:
+          type: string
+          enum:
+          - ELECTRONIC
+    PaymentCallbackRequest:
+      type: object
+      required:
+      - transaction_reference
+      - status
+      properties:
+        transaction_reference:
+          type: string
+        status:
+          type: string
+          enum:
+          - SUCCESS
+          - FAILED
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        message:
+          type: string
+security:
+- bearerAuth: []

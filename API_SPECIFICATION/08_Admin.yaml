@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: CAB System API - 08_Admin
+  version: 1.0.0
+servers:
+- url: https://api.example.com/v1
+  description: Placeholder server
+paths:
+  /admin/customers:
+    get:
+      tags:
+      - Admin
+      summary: Danh sách khách hàng
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Limit'
+      - name: search
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Customer list
+  /admin/drivers:
+    get:
+      tags:
+      - Admin
+      summary: Danh sách tài xế
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Limit'
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: search
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Driver list
+  /admin/vehicles:
+    get:
+      tags:
+      - Admin
+      summary: Danh sách phương tiện
+      responses:
+        '200':
+          description: Vehicle list
+  /admin/trips/active:
+    get:
+      tags:
+      - Admin
+      summary: Danh sách chuyến đang diễn ra
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: driver_id
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Active trips
+  /admin/trips/{trip_id}/incident:
+    post:
+      tags:
+      - Admin
+      summary: Xử lý chuyến gặp sự cố
+      parameters:
+      - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Incident processed
+  /admin/history:
+    get:
+      tags:
+      - Admin
+      summary: Tra cứu lịch sử giao dịch/chuyến đi
+      parameters:
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: from_date
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to_date
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: customer_id
+        in: query
+        schema:
+          type: string
+      - name: driver_id
+        in: query
+        schema:
+          type: string
+      - name: trip_id
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: History results
+  /admin/roles:
+    get:
+      tags:
+      - Admin
+      summary: Lấy danh sách role quản trị
+      responses:
+        '200':
+          description: Roles
+  /admin/operators/{operator_id}/role:
+    patch:
+      tags:
+      - Admin
+      summary: Phân quyền quản trị
+      parameters:
+      - name: operator_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - role
+              properties:
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Role updated
+  /admin/reports:
+    get:
+      tags:
+      - Reporting
+      summary: Báo cáo thống kê
+      parameters:
+      - name: from_date
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to_date
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: type
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - TRIPS
+          - REVENUE
+          - COMPLETION
+          - CANCELLATION
+          - DRIVER_PERFORMANCE
+      responses:
+        '200':
+          description: Report data
+  /admin/audit-logs:
+    get:
+      tags:
+      - Audit
+      summary: Tra cứu audit log
+      parameters:
+      - name: operator_id
+        in: query
+        schema:
+          type: string
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: from_date
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to_date
+        in: query
+        schema:
+          type: string
+          format: date
+      responses:
+        '200':
+          description: Audit logs
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TripId:
+      name: trip_id
+      in: path
+      required: true
+      schema:
+        type: string
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  schemas:
+    RegisterCustomerRequest:
+      type: object
+      required:
+      - full_name
+      - phone
+      - email
+      - password
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginRequest:
+      type: object
+      required:
+      - phone
+      - password
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
+    RegisterDriverRequest:
+      type: object
+      required:
+      - full_name
+      - phone
+      - email
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+    CreateTripRequest:
+      type: object
+      required:
+      - pickup_location
+      - dropoff_location
+      - vehicle_type
+      properties:
+        pickup_location:
+          type: string
+        dropoff_location:
+          type: string
+        vehicle_type:
+          type: string
+          example: CAR_4
+    TripStatusRequest:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - DRIVER_ARRIVING
+          - DRIVER_ARRIVED
+          - PASSENGER_PICKED_UP
+          - DRIVING
+          - COMPLETED
+    RatingRequest:
+      type: object
+      required:
+      - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+    DriverProfileRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+    VehicleRequest:
+      type: object
+      required:
+      - plate_number
+      - vehicle_type
+      properties:
+        plate_number:
+          type: string
+        vehicle_type:
+          type: string
+    DriverStatusRequest:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - AVAILABLE
+          - BUSY
+          - OFFLINE
+    LocationRequest:
+      type: object
+      required:
+      - latitude
+      - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    OfferResponseRequest:
+      type: object
+      required:
+      - response
+      properties:
+        response:
+          type: string
+          enum:
+          - ACCEPT
+          - REJECT
+    PaymentMethodRequest:
+      type: object
+      required:
+      - method
+      properties:
+        method:
+          type: string
+          enum:
+          - CASH
+          - ELECTRONIC
+    CreatePaymentRequest:
+      type: object
+      required:
+      - trip_id
+      - method
+      properties:
+        trip_id:
+          type: string
+        method:
+          type: string
+          enum:
+          - ELECTRONIC
+    PaymentCallbackRequest:
+      type: object
+      required:
+      - transaction_reference
+      - status
+      properties:
+        transaction_reference:
+          type: string
+        status:
+          type: string
+          enum:
+          - SUCCESS
+          - FAILED
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        message:
+          type: string
+security:
+- bearerAuth: []
